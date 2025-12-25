@@ -29,7 +29,7 @@ MAX_RETRIES = 3
 BACKOFF_FACTOR = 5
 CHUNK_SIZE = 1000
 MAX_LISTS_WARNING = 900
-API_DELAY = 0.25  # Small delay between requests to avoid rate limiting
+API_DELAY = 0.1  # Small delay between requests to avoid rate limiting
 
 # API base URL
 base_url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/gateway"

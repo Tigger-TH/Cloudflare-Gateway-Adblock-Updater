@@ -32,7 +32,7 @@ MAX_RETRIES = 3
 BACKOFF_FACTOR = 5
 CHUNK_SIZE = 1000
 MAX_LISTS_WARNING = 900
-API_DELAY = 0.1
+API_DELAY = 0.1   # Small delay between requests to avoid rate limiting
 
 # Async configuration
 MAX_CONCURRENT_REQUESTS = int(os.environ.get('MAX_CONCURRENT_REQUESTS', '12'))
@@ -157,7 +157,7 @@ def should_update_filter(filter_config: Dict, cached_versions: Dict, cached_rule
         logger.info(f"  Version changed: {cached_version} → {current_version}")
         return True, current_version, "Version changed"
     
-    # NEW: Version matches, but verify policy actually exists in Cloudflare
+    # Version matches, but verify policy actually exists in Cloudflare
     policy_exists = any(rule['name'] == policy_name for rule in cached_rules)
     
     if not policy_exists:
@@ -537,7 +537,7 @@ blocklists: List[Dict[str, str]] = [
 ]
 
 # Execution
-logger.info("Starting Cloudflare Gateway Adblock Update (ASYNC V3)...\n")
+logger.info("Starting Cloudflare Gateway Adblock Update...\n")
 logger.info(f"Force update all: {'YES' if FORCE_UPDATE_ALL else 'NO'}")
 logger.info(f"Check versions: {'ENABLED' if CHECK_VERSIONS else 'DISABLED'}")
 logger.info(f"Max concurrent requests: {MAX_CONCURRENT_REQUESTS}\n")

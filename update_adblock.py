@@ -73,50 +73,32 @@ def save_version_cache(versions: Dict[str, str]):
     except Exception as e:
         logger.warning(f"Could not save version cache: {e}")
 
-def extract_version_from_content(content: str, filter_name: str) -> Optional[str]:
-    """Extract version from blocklist header."""
-    lines = content.splitlines()[:20]
-    
-    for line in lines:
-        line = line.strip()
-        if line.startswith('# Version:'):
-            version = line.replace('# Version:', '').strip()
-            logger.info(f"  Found version for {filter_name}: {version}")
-            return version
-    
-    for line in lines:
-        line = line.strip()
-        if line.startswith('# Last modified:'):
-            modified = line.replace('# Last modified:', '').strip()
-            logger.info(f"  Found last modified for {filter_name}: {modified}")
-            return modified
-    
-    logger.warning(f"  No version info found for {filter_name}")
-    return None
-
 def fetch_blocklist_version(url: str, backup_url: Optional[str], filter_name: str) -> Optional[str]:
-    """Fetch blocklist header to extract version."""
+    """Fetch blocklist header to extract version using streaming."""
     for fetch_url in [url, backup_url]:
         if fetch_url is None:
             continue
         try:
-            response = requests.get(fetch_url, timeout=REQUEST_TIMEOUT, stream=True)
-            if response.status_code == 200:
-                content = response.raw.read(2048).decode('utf-8', errors='ignore')
-                response.close()
-                
-                version = extract_version_from_content(content, filter_name)
-                if version:
-                    return version
-                
-                logger.info(f"  No version in header, fetching full content...")
-                response = requests.get(fetch_url, timeout=REQUEST_TIMEOUT)
+            # Use iter_lines to handle gzip/encoding correctly and avoid downloading full file
+            with requests.get(fetch_url, timeout=REQUEST_TIMEOUT, stream=True) as response:
                 if response.status_code == 200:
-                    return extract_version_from_content(response.text, filter_name)
+                    # Scan first 15 lines for version info (most headers are at the top)
+                    for i, line in enumerate(response.iter_lines(decode_unicode=True)):
+                        if i > 15:
+                            break
+                        if not line:
+                            continue
+                        
+                        line = line.strip()
+                        if line.startswith('# Version:'):
+                            version = line.replace('# Version:', '').strip()
+                            logger.info(f"  Found version for {filter_name}: {version}")
+                            return version
         except Exception as e:
             logger.warning(f"  Error fetching version from {fetch_url}: {e}")
             continue
     
+    logger.warning(f"  No version info found for {filter_name}")
     return None
 
 def should_update_filter(filter_config: Dict, cached_versions: Dict, cached_rules: List[Dict]) -> tuple:

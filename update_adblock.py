@@ -158,11 +158,19 @@ def should_update_filter(filter_config: Dict, cached_versions: Dict, cached_rule
         return True, current_version, "Version changed"
     
     # Version matches, but verify policy actually exists in Cloudflare
-    policy_exists = any(rule['name'] == policy_name for rule in cached_rules)
+    policy = next((rule for rule in cached_rules if rule['name'] == policy_name), None)
     
-    if not policy_exists:
+    if not policy:
         logger.warning(f"  ⚠ Version matches but policy '{policy_name}' missing in Cloudflare!")
         return True, current_version, "Policy missing (recreating)"
+    
+    # Check if precedence matches
+    target_precedence = filter_config.get('priority')
+    current_precedence = policy.get('precedence')
+    
+    if target_precedence is not None and current_precedence != target_precedence:
+        logger.info(f"  ⚠ Precedence mismatch: {current_precedence} (current) ≠ {target_precedence} (target)")
+        return True, current_version, f"Precedence mismatch ({current_precedence} -> {target_precedence})"
     
     logger.info(f"  ✅ Version unchanged ({current_version}), skipping update")
     return False, current_version, "Version unchanged"
@@ -477,62 +485,62 @@ def process_filter_async(filter_config: Dict, cached_lists: List[Dict],
         "enabled": True,
         "filters": ["dns"],
         "name": policy_name,
-        "priority": priority,
+        "precedence": priority,
         "traffic": expression
     }
 
     response = api_request('POST', f"{base_url}/rules", data_payload)
     check_api_response(response, f"creating policy {policy_name}")
-    logger.info(f"✓ Created policy: {policy_name} (priority={priority})")
+    logger.info(f"✓ Created policy: {policy_name} (precedence={priority})")
 
     return {'success': True, 'filter': filter_name, 'domains': len(domains), 'lists': len(list_ids)}
 
 # Blocklists configuration with explicit priorities
 # Priority order (lower number = higher priority):
-# 1-3: Reserved for custom policies (Allow Rules, Content Blocking, etc.)
-# 4-10: Hagezi filters (ordered by importance)
+# 1-9999: Reserved for custom policies (Allow Rules, Content Blocking, etc.)
+# 10000+: Hagezi filters (ordered by importance)
 blocklists: List[Dict[str, str]] = [
     {
         "name": "Hagezi Pro++",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro.plus-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/pro.plus-onlydomains.txt",
-        "priority": 4
+        "priority": 10000
     },
     {
         "name": "Hagezi-DynDNS",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/dyndns-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/dyndns-onlydomains.txt",
-        "priority": 5
+        "priority": 20000
     },
     {
         "name": "Xiaomi-native",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.xiaomi-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/native.xiaomi-onlydomains.txt",
-        "priority": 6
+        "priority": 30000
     },
     {
         "name": "OppoRealme-native",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.oppo-realme-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/native.oppo-realme-onlydomains.txt",
-        "priority": 7
+        "priority": 40000
     },
     {
         "name": "Vivo-native",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.vivo-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/native.vivo-onlydomains.txt",
-        "priority": 8
+        "priority": 50000
     },
     {
         "name": "Samsung-native",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.samsung-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/native.samsung-onlydomains.txt",
-        "priority": 9
+        "priority": 60000
     },
     {
         "name": "TikTok-native",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/native.tiktok-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/native.tiktok-onlydomains.txt",
-        "priority": 10
+        "priority": 70000
     }
 ]
 

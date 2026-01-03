@@ -252,21 +252,6 @@ def get_all_paginated(endpoint: str, per_page: int = 100) -> List[Dict]:
         logger.error(f"Pagination failed for {endpoint} at page {page}: {e}", exc_info=True)
         raise
 
-def get_location_id_by_name(location_name: str) -> Optional[str]:
-    """Get location ID (UUID) by location name."""
-    try:
-        all_locations = get_all_paginated(f"{base_url}/locations")
-        for location in all_locations:
-            if location.get('name') == location_name:
-                return location.get('id')
-        logger.warning(f"Location '{location_name}' not found")
-        return None
-    except Exception as e:
-        logger.error(f"Failed to fetch locations: {e}")
-        return None
-
-
-
 # Async API functions
 async def async_api_request(session: aiohttp.ClientSession, method: str, url: str, 
                            data: Optional[Dict] = None) -> Dict:
@@ -468,22 +453,7 @@ def update_policy_for_filter(filter_config: Dict, final_list_ids: List[str],
         return False
 
     # Build traffic expression
-    location_names = filter_config.get('location_ids', [])
-    if location_names:
-        location_uuids = []
-        for loc_name in location_names:
-            loc_id = get_location_id_by_name(loc_name)
-            if loc_id:
-                location_uuids.append(loc_id)
-        
-        if not location_uuids:
-             return False
-
-        location_set = " ".join([f'"{uuid}"' for uuid in location_uuids])
-        location_condition = f'dns.location in {{{location_set}}}'
-        expression = " or ".join([f"(any(dns.domains[*] in ${lid}) and {location_condition})" for lid in final_list_ids])
-    else:
-        expression = " or ".join([f"any(dns.domains[*] in ${lid})" for lid in final_list_ids])
+    expression = " or ".join([f"any(dns.domains[*] in ${lid})" for lid in final_list_ids])
 
     if len(expression) > 4000:
         logger.warning(f"⚠ Expression length ({len(expression)}) may exceed Cloudflare limits!")
@@ -786,19 +756,6 @@ blocklists: List[Dict[str, str]] = [
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro.plus-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/pro.plus-onlydomains.txt",
         "priority": 10000
-    },
-    {
-        "name": "Hagezi-DynDNS",
-        "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/dyndns-onlydomains.txt",
-        "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/dyndns-onlydomains.txt",
-        "priority": 20000
-    },
-    {
-        "name": "Hagezi DoH/VPN",
-        "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/doh-vpn-proxy-bypass-onlydomains.txt",
-        "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/doh-vpn-proxy-bypass-onlydomains.txt",
-        "priority": 30000,
-        "location_ids": ["Home-Router"]
     }
 ]
 

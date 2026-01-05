@@ -18,6 +18,10 @@ The Python script in this repository automates updating your Cloudflare Zero Tru
 
   Detects and synchronizes existing Gateway lists and policies with the updated filters, ensuring outdated domains are removed and new ones are added without unnecessary recreation.
 
+- **Fast async API operations**
+
+  Uses async, parallel requests to update Cloudflare Gateway lists efficiently, significantly reducing execution time while respecting Cloudflare API rate limits.
+
 - **Automatic policy creation and updates**
 
   Creates the required Gateway policy if it does not exist and keeps it updated to reference the correct blocklists.

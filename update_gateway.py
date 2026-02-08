@@ -58,15 +58,10 @@ session.headers.update(headers)
 # 10000+: Hagezi filters (ordered by importance)
 blocklists: List[Dict[str, str]] = [
     {
-        "name": "Hagezi Pro",
+        "name": "Hagezi_Pro",
         "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro-onlydomains.txt",
         "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/pro-onlydomains.txt",
         "priority": 10000
-    },
-    {
-        "name": "AdGuard_DNS_filter",
-        "url": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
-        "priority": 9999
     }
 ]
 

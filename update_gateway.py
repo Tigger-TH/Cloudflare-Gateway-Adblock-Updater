@@ -64,8 +64,8 @@ blocklists: List[Dict[str, str]] = [
         "priority": 10000
     },
     {
-        "name": "hBlock",
-        "url": "https://hblock.molinero.dev/hosts_domains.txt",
+        "name": "AdGuard_DNS_filter",
+        "url": "https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt",
         "priority": 9999
     }
 ]

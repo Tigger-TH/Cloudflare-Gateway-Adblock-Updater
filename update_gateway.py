@@ -64,9 +64,9 @@ blocklists: List[Dict[str, str]] = [
         "priority": 10000
     },
     {
-        "name": "Threat_Intelligence_Hagezi",
-        "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif-onlydomains.txt",
-        "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/tif-onlydomains.txt",
+        "name": "Threat_Intelligence_Hagezi_mini",
+        "url": "https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/tif.medium-onlydomains.txt",
+        "backup_url": "https://gitlab.com/hagezi/mirror/-/raw/main/dns-blocklists/wildcard/tif.medium-onlydomains.txt",
         "priority": 10001
     }
 ]

@@ -64,7 +64,7 @@ blocklists: List[Dict[str, str]] = [
         "priority": 10000
     }
     {
-        "name": "Hagezi Pro",
+        "name": "hBlock",
         "url": "https://hblock.molinero.dev/hosts_domains.txt",
         "priority": 9999
     }
